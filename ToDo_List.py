@@ -41,19 +41,14 @@ class App(ctk.CTk):
         self.headingLabel.pack(pady = 15)
         self.headingLabel.configure(font=ctk.CTkFont(size=25, weight='bold',slant='roman'), text_color=("blue","white"))
 
-        # A button for creating/removing a task
-        self.newTaskButton = ctk.CTkButton(self.topFrame,text ="ADD/REMOVE TASK",command=self.newTask)
+        # A button for creating a task
+        self.newTaskButton = ctk.CTkButton(self.topFrame,text ="NEW ENTRY",command=self.newTask)
         self.newTaskButton.pack(padx = 3, pady = 5)
 
         # A button for adding a new task to the to-do list
         self.addTaskButton = ctk.CTkButton(self.topFrame,text="ADD TASK",command=self.addTask)
         self.addTaskButton.configure(state = "disabled")
         self.addTaskButton.pack(padx = 3,pady = 5)
-
-        # A button for removing a task
-        self.removeTaskButton = ctk.CTkButton(self.topFrame,text = "REMOVE",command =  self.removeTask)
-        self.removeTaskButton.configure(state="disabled")
-        self.removeTaskButton.pack(padx = 3, pady = 5)
 
         # A container for the tasks
         self.taskContainer = ctk.CTkScrollableFrame(self)
@@ -67,11 +62,19 @@ class App(ctk.CTk):
         self.cursor.execute('SELECT Task FROM Tasks')
         self.tasks = self.cursor.fetchall()
 
-        for task in self.tasks:
-            oldTasks = ctk.CTkTextbox(self.taskContainer,height =25)
-            oldTasks.insert("0.0",task[0].strip())
-            oldTasks.pack(padx = 8,pady =10,fill = "x")
-            oldTasks.configure(state = "disabled")
+    # function for fetching saved data from database    
+    def fetchData(self):
+            for task in self.tasks:
+                outputContainer = ctk.CTkFrame(self.taskContainer, height = 45,fg_color =("#44524B","#44524B"))
+                outputContainer.pack(padx =5 ,pady=5, fill="x")
+                oldTasks = ctk.CTkTextbox(outputContainer,height =25,activate_scrollbars=True)
+                oldTasks.insert("0.0",task[0].strip())
+                oldTasks.pack(padx = 8,pady =10,fill = "x")
+                
+                # button for removing the task
+                btnRemoveTask = ctk.CTkButton(outputContainer,text = "DONE",command=lambda: self.removeTask(task[0]))
+                btnRemoveTask.pack(padx=3,pady=5)
+                oldTasks.configure(state = "disabled")
 
     # Method for creating a task
     def newTask(self):
@@ -79,19 +82,27 @@ class App(ctk.CTk):
         self.newTaskEntry.pack(padx = 5,pady = 5,fill = "x")
 
         self.addTaskButton.configure(state = "normal")
-        self.removeTaskButton.configure(state="normal")
+        #self.removeTaskButton.configure(state="normal")
         
         return self.newTaskEntry.get("0.0","end")  
     
     # Method for adding a new task to the to do list
     def addTask(self):
-        # A default task
-        outputContainer = ctk.CTkFrame(self.taskContainer, height = 30)
+
+        # Panel that will contain the task text and a button for removing it
+        outputContainer = ctk.CTkFrame(self.taskContainer, height = 35,fg_color =("#44524B","#44524B"))
         outputContainer.pack(padx =5 ,pady=5, fill="x")
+
         taskString = self.newTask()
-        taskOutput = ctk.CTkTextbox(outputContainer,height = 25)
+        taskOutput = ctk.CTkTextbox(outputContainer,height = 25, activate_scrollbars=False)
         taskOutput.insert("0.0",taskString)
+        taskOutput.configure(state="disabled")
         taskOutput.pack(padx = 8,pady = 10,fill = "x")
+        taskOutput.configure(state="disabled")
+
+        # button for removing the task
+        btnRemoveTask = ctk.CTkButton(outputContainer,text = "REMOVE",command=lambda: self.removeTask(taskString))
+        btnRemoveTask.pack(padx=3,pady=5)
 
         # adding the task to the database 
         day = datetime.datetime.now().strftime("%x")
@@ -101,18 +112,29 @@ class App(ctk.CTk):
         self.cursor.execute('INSERT INTO Tasks(Date, Time, Task) VALUES (?,?,?)',taskstoInsert)
         self.connection.commit()
 
-        taskOutput.configure(state = "disabled")
+        # deletes the Entry after a task is added
         self.newTaskEntry.delete("0.0","end")
         self.newTaskEntry.pack_forget() 
+        self.addTaskButton.configure(state="disabled")
 
-    def removeTask(self):
-        theID = (int(self.newTaskEntry.get("0.0","end").strip()),) 
-        self.cursor.execute('DELETE FROM Tasks WHERE TaskID = ?',theID)
+    def removeTask(self,toRemove):
+        theID = (toRemove,) 
+        self.cursor.execute('DELETE FROM Tasks WHERE Task = ?',theID)
         self.connection.commit()
+        self.reset_program()
+
+    def reset_program(self):
+        self.destroy()
+        main()
+         
+def main():
+    app = App()
+    app.fetchData()
+    app.mainloop()
 
 if __name__ == "__main__":
-    app = App()
-    app.mainloop()
+    main()
+   
 
 
 
