@@ -86,8 +86,10 @@ class App(ctk.CTk):
     # Method for adding a new task to the to do list
     def addTask(self):
         # A default task
+        outputContainer = ctk.CTkFrame(self.taskContainer, height = 30)
+        outputContainer.pack(padx =5 ,pady=5, fill="x")
         taskString = self.newTask()
-        taskOutput = ctk.CTkTextbox(self.taskContainer,height = 25)
+        taskOutput = ctk.CTkTextbox(outputContainer,height = 25)
         taskOutput.insert("0.0",taskString)
         taskOutput.pack(padx = 8,pady = 10,fill = "x")
 
