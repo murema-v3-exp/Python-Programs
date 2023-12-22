@@ -28,9 +28,6 @@ class App(ctk.CTk):
         # Creates or loads a table for tasks that have been completed
         self.cursor.execute("CREATE TABLE IF NOT EXISTS Completed(TaskID INTEGER PRIMARY KEY, TimeCreated TEXT, TimeCompleted TEXT, Task TEXT)")
 
-        
-        
-
         # Setting the title of the application
         self.title("To-do List")
 
@@ -56,20 +53,29 @@ class App(ctk.CTk):
         self.addTaskButton.configure(state = "disabled")
         self.addTaskButton.pack(padx = 3,pady = 5)
 
+        # A button for viewing completed tasks
+        self.viewOldTasks = ctk.CTkButton(self.topFrame,text="View Completed Tasks",command= self.showCompleted)
+        self.viewOldTasks.configure(state="normal")
+        self.viewOldTasks.pack(padx = 3, pady=5)
+
+
         # A container for the tasks
         self.taskContainer = ctk.CTkScrollableFrame(self)
-        self.taskContainer.pack(pady=5, padx=60,side = ctk.TOP, fill="both", expand=True)
+        self.completedFrame =ctk.CTkScrollableFrame(self)
         
         # The textbox that accepts a new task entry
         self.newTaskEntry = ctk.CTkTextbox(self.topFrame)
         self.newTaskEntry.configure(height = 50)
 
-        # to load previous task entries from the Tasks database
-        self.cursor.execute('SELECT Task FROM Tasks')
-        self.tasks = self.cursor.fetchall()
 
     # function for fetching saved data from database    
     def fetchData(self):
+            self.taskContainer.pack(pady=5, padx=60,side = ctk.TOP, fill="both", expand=True)
+            # to load previous task entries from the Tasks database
+            
+            self.cursor.execute('SELECT Task FROM Tasks') 
+            self.tasks = self.cursor.fetchall()
+
             for task in self.tasks:
                 outputContainer = ctk.CTkFrame(self.taskContainer, height = 45,fg_color =("#44524B","#44524B"))
                 outputContainer.pack(padx =5 ,pady=5, fill="x")
@@ -138,6 +144,25 @@ class App(ctk.CTk):
         self.cursor.execute('DELETE FROM Tasks WHERE Task = ?',theID)
         self.connection.commit()
         self.reset_program()
+
+    def showCompleted(self):
+        self.cursor.execute('SELECT TimeCompleted,Task FROM Completed ORDER BY TaskID ASC') 
+        self.tasks = self.cursor.fetchall()
+        self.taskContainer.pack_forget()
+        self.completedFrame.pack(pady=5, padx=60,side = ctk.TOP, fill="both", expand=True)
+
+        for task in self.tasks:
+            outputContainer = ctk.CTkFrame(self.completedFrame, height = 50,fg_color =("#44524B","#44524B"))
+            outputContainer.pack(padx =5 ,pady=5, fill="x")
+            oldTasks = ctk.CTkTextbox(outputContainer,height =50,activate_scrollbars=True)
+            oldTasks.insert("0.0", task[1] + "Completed on: "+task[0])
+            oldTasks.pack(padx = 8,pady =10,fill = "x")
+
+        backButton = ctk.CTkButton(self.completedFrame,text="Show Uncompleted",command=self.reset_program)
+        backButton.pack()
+        self.viewOldTasks.configure(state="disabled")
+        
+
 
     def reset_program(self):
         self.destroy()
