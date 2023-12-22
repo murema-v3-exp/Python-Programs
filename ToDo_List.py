@@ -22,8 +22,14 @@ class App(ctk.CTk):
         # create a cursor to execute SQL commands which acts as pointer to the database connection
         self.cursor = self.connection.cursor()
 
-        # creates a new table if one doenst exist
+        # creates a new table for tasks that need to be if one doenst exist
         self.cursor.execute('CREATE TABLE IF NOT EXISTS Tasks(TaskID INTEGER PRIMARY KEY AUTOINCREMENT,Date TEXT, Time TEXT , Task TEXT)')
+
+        # Creates or loads a table for tasks that have been completed
+        self.cursor.execute("CREATE TABLE IF NOT EXISTS Completed(TaskID INTEGER PRIMARY KEY, TimeCreated TEXT, TimeCompleted TEXT, Task TEXT)")
+
+        
+        
 
         # Setting the title of the application
         self.title("To-do List")
@@ -37,9 +43,9 @@ class App(ctk.CTk):
        # self.topFrame.pack(side = ctk.TOP)
 
         # Label for heading
-        self.headingLabel = ctk.CTkLabel(self.topFrame, text = "Daily List")
+        self.headingLabel = ctk.CTkLabel(self.topFrame, text = "DAILY GRIND")
         self.headingLabel.pack(pady = 15)
-        self.headingLabel.configure(font=ctk.CTkFont(size=25, weight='bold',slant='roman'), text_color=("blue","white"))
+        self.headingLabel.configure(font=ctk.CTkFont(size=25, weight='bold',slant='roman'), text_color=("black","white"))
 
         # A button for creating a task
         self.newTaskButton = ctk.CTkButton(self.topFrame,text ="NEW ENTRY",command=self.newTask)
@@ -101,7 +107,7 @@ class App(ctk.CTk):
         taskOutput.configure(state="disabled")
 
         # button for removing the task
-        btnRemoveTask = ctk.CTkButton(outputContainer,text = "REMOVE",command=lambda: self.removeTask(taskString))
+        btnRemoveTask = ctk.CTkButton(outputContainer,text = "DONE",command=lambda: self.removeTask(taskString))
         btnRemoveTask.pack(padx=3,pady=5)
 
         # adding the task to the database 
@@ -119,6 +125,16 @@ class App(ctk.CTk):
 
     def removeTask(self,toRemove):
         theID = (toRemove,) 
+        self.cursor.execute('SELECT Date,Task FROM Tasks WHERE Task =?',theID)
+        result = self.cursor.fetchone()
+
+        # adds the completed task to the Completed table before it is deleted from Tasks
+        date, task = result
+        currentDate = datetime.datetime.now().strftime("%x")
+        taskstoInsert = (date,currentDate,task)
+        self.cursor.execute('INSERT INTO Completed(TimeCreated,TimeCompleted,Task) VALUES(?,?,?)',taskstoInsert)
+
+
         self.cursor.execute('DELETE FROM Tasks WHERE Task = ?',theID)
         self.connection.commit()
         self.reset_program()
@@ -126,6 +142,8 @@ class App(ctk.CTk):
     def reset_program(self):
         self.destroy()
         main()
+
+    
          
 def main():
     app = App()
