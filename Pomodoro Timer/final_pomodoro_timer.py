@@ -31,7 +31,7 @@ class Pomodoro(tk.Tk):
         self.time_remaining = 25 * 60
         self.strTime = tk.StringVar(self)
         self.time_stopped = False
-        self.onBreak = False
+        self.onBreak = True
         
         # The label that will display the time
         self.timer_label = tk.Label(self,text = "25:00", font=("Helvetica",16))
@@ -56,11 +56,14 @@ class Pomodoro(tk.Tk):
      
         while timer >= 0 and not self.time_stopped:  
             if timer == 0:
-               if self.onBreak:
+               if self.onBreak == False:
                    messagebox.showinfo("Pomodo Timer: Break is over","YOUR BREAK IS OVER MY DEAR, GET BACK TO WORK")
-               messagebox.showinfo("Pomodoro Timer: Break has just started ","TAKE A BREAK, DO SOME PUSH UPS, DRINK WATER")
-               self.break_()
-               self.onBreak = False
+                   self.timer_start(25*60)
+               else:
+                    messagebox.showinfo("Pomodoro Timer: Break has just started ","TAKE A BREAK, DO SOME PUSH UPS, DRINK WATER")
+                    self.onBreak = True
+                    self.break_()
+                    
                
             mins, secs = divmod(timer,60)
             self.strTime.set('{:02d}:{:02d}'.format(mins, secs))
@@ -73,9 +76,10 @@ class Pomodoro(tk.Tk):
         self.strTime.set("25:00")
         self.time_stopped = True
 
-   def break_(self):   
+   def break_(self):
+       self.onBreak = False    
        self.timer_start(5*60)
-       self.onBreak = True      
+           
 
 app = Pomodoro()
 app.mainloop()
