@@ -46,7 +46,7 @@ class App(ctk.CTk):
         self.textbox = ctk.CTkTextbox(self.textFrame,width=500, height=400, corner_radius= 5)
         self.entryTitle = ctk.CTkEntry(self.textFrame,placeholder_text="Title")
 
-        self.moods = ["Contempt","Exhilaration","Melancholy","Determination","Exhausted","Annoyed"]
+        self.moods = ["Contempt","Exhilaration","Melancholy","Determination","Exhausted","Annoyed",'Neutral']
         
 
     def new_journal_entry(self):
