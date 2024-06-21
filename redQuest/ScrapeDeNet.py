@@ -3,8 +3,17 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
+
+# Initialize an empty list to store clientID and client_secret
+lines = []
+
+# Opening the textfile that contains the Reddit app credentials
+with open('keys.txt', 'r') as file:
+    # Read all lines into the list
+    lines = file.readlines()
+
 # Initialize the Reddit instance
-reddit_read_only = praw.Reddit(client_id="a4ZGK6-dmEvPVi1gjDgD3w", client_secret="A7pDwzdIoCWeGiNcWxfYa71ktrXJcg", user_agent="Murema")
+reddit_read_only = praw.Reddit(client_id=lines[0].strip(), client_secret=lines[1].strip(), user_agent=lines[2].strip())
 
 # Scrape the top posts of the month from the Python subreddit
 subreddit = reddit_read_only.subreddit("programming")
